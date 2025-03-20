@@ -18,6 +18,16 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "blockchain_simulation_secret")
 
+# Add custom Jinja2 filter for timestamp formatting
+@app.template_filter('strftime')
+def _jinja2_filter_datetime(timestamp):
+    """Convert a timestamp to formatted datetime string."""
+    try:
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    except:
+        return str(timestamp)
+
 # Initialize blockchain components
 blockchain = Blockchain()
 dag = DAG()
