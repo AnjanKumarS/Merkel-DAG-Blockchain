@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Simulation: Merkle Trees & DAG Consensus</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Blockchain Simulation</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/blockchain">Blockchain</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dag">DAG</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/transactions">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/wallets">Wallets</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="card-title">Blockchain Simulation: Merkle Trees & DAG Consensus</h1>
+                        <p class="card-text">
+                            This simulation demonstrates core blockchain concepts including:
+                        </p>
+                        <ul>
+                            <li>Blockchain structure with blocks and transactions</li>
+                            <li>Merkle Trees for efficient transaction verification</li>
+                            <li>Directed Acyclic Graph (DAG) for scalable consensus</li>
+                            <li>Cryptographic hashing and digital signatures</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Create Transaction</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/create_transaction" method="post">
+                            <div class="mb-3">
+                                <label for="sender" class="form-label">Sender</label>
+                                <select class="form-select" id="sender" name="sender" required>
+                                    {% for name, wallet in wallets.items() %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="recipient" class="form-label">Recipient</label>
+                                <select class="form-select" id="recipient" name="recipient" required>
+                                    {% for name, wallet in wallets.items() %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0.01" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Transaction</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Mine Block</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/mine_block" method="post">
+                            <div class="mb-3">
+                                <label for="miner" class="form-label">Miner</label>
+                                <select class="form-select" id="miner" name="miner" required>
+                                    {% for name, wallet in wallets.items() %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <p>Mining a block will process all pending transactions and generate a mining reward.</p>
+                            <button type="submit" class="btn btn-success">Mine Block</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Blockchain Status</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Blocks:</strong> {{ blockchain.chain|length }}</p>
+                        <p><strong>Pending Transactions:</strong> {{ blockchain.pending_transactions|length }}</p>
+                        <p><strong>Chain valid:</strong> {{ "Yes" if blockchain.is_chain_valid() else "No" }}</p>
+                        <a href="/blockchain" class="btn btn-info">View Blockchain</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">DAG Status</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total Transactions:</strong> {{ dag.transactions|length }}</p>
+                        <p><strong>Tips:</strong> {{ dag.tips|length }}</p>
+                        <a href="/dag" class="btn btn-warning">View DAG</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Learn More</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>Merkle Trees</h5>
+                        <p>Merkle Trees allow efficient and secure verification of transaction content in blocks. They enable SPV (Simplified Payment Verification) in blockchains like Bitcoin.</p>
+                        
+                        <h5>DAG Consensus</h5>
+                        <p>Directed Acyclic Graph consensus allows transactions to reference multiple previous transactions, enabling higher throughput than traditional blockchains. IOTA's Tangle is a notable implementation.</p>
+                        
+                        <h5>Cryptographic Hashing</h5>
+                        <p>SHA-256 hashing creates unique digital fingerprints of data. Any change to the input results in a completely different hash output, ensuring data integrity.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>Blockchain Simulation: Merkle Trees & DAG Consensus</p>
+                    <p class="text-muted">A Python-based educational simulation</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

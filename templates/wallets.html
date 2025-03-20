@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallets | Blockchain Simulation</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Blockchain Simulation</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/blockchain">Blockchain</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dag">DAG</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/transactions">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/wallets">Wallets</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="mb-4">Wallet Explorer</h1>
+        
+        <div class="row">
+            {% for name, wallet in wallets.items() %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">{{ name }}'s Wallet</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h5 class="text-center">Balance</h5>
+                            <h2 class="text-center">{{ balances[name] }}</h2>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Wallet Address</h6>
+                            <code class="text-break">{{ wallet.address }}</code>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-info" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#walletModal{{ loop.index }}">
+                                View Keys
+                            </button>
+                            
+                            <button type="button" class="btn btn-success" 
+                                    onclick="document.getElementById('sender{{ loop.index }}').value = '{{ name }}';"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#transferModal">
+                                Send Coins
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wallet Details Modal -->
+            <div class="modal fade" id="walletModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ name }}'s Wallet Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <strong>Warning:</strong> In a real blockchain, you would never share your private key.
+                                This is for educational purposes only.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Wallet Address</h6>
+                                <code class="text-break">{{ wallet.address }}</code>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Public Key</h6>
+                                <code class="text-break">{{ wallet.public_key.to_string().hex() }}</code>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Private Key (Never share in real systems)</h6>
+                                <code class="text-break">{{ wallet.private_key.to_string().hex() }}</code>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Transfer Modal -->
+        <div class="modal fade" id="transferModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Send Coins</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="/create_transaction" method="post">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="sender1" class="form-label">From</label>
+                                <select class="form-select" id="sender1" name="sender" required>
+                                    {% for name in wallets.keys() %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="recipient" class="form-label">To</label>
+                                <select class="form-select" id="recipient" name="recipient" required>
+                                    {% for name in wallets.keys() %}
+                                    <option value="{{ name }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount</label>
+                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0.01" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Cryptographic Concepts</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Public-Private Key Cryptography</h5>
+                                <p>
+                                    Blockchain networks use asymmetric cryptography where:
+                                </p>
+                                <ul>
+                                    <li><strong>Private Key:</strong> Used for signing transactions. Must be kept secret.</li>
+                                    <li><strong>Public Key:</strong> Used to verify signatures. Can be shared with anyone.</li>
+                                    <li><strong>Wallet Address:</strong> Usually derived from a public key through hashing.</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Digital Signatures</h5>
+                                <p>
+                                    Every transaction is digitally signed using the sender's private key.
+                                    This process ensures:
+                                </p>
+                                <ul>
+                                    <li><strong>Authentication:</strong> Only the holder of the private key could have signed it.</li>
+                                    <li><strong>Non-repudiation:</strong> Sender cannot deny sending the transaction.</li>
+                                    <li><strong>Integrity:</strong> The transaction details haven't been altered.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>Blockchain Simulation: Merkle Trees & DAG Consensus</p>
+                    <p class="text-muted">A Python-based educational simulation</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

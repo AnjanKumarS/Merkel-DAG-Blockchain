@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAG Visualization | Blockchain Simulation</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Blockchain Simulation</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/blockchain">Blockchain</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dag">DAG</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/transactions">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/wallets">Wallets</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <h1 class="mb-4">DAG Visualization</h1>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">DAG Structure (Directed Acyclic Graph)</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="data:image/png;base64,{{ dag_data.dag_image }}" 
+                             alt="DAG Visualization" 
+                             class="img-fluid rounded">
+                        <div class="mt-3">
+                            <p>
+                                <strong>Total Transactions:</strong> {{ dag_data.stats.transaction_count }} &nbsp;|&nbsp;
+                                <strong>Tips:</strong> {{ dag_data.stats.tip_count }} &nbsp;|&nbsp;
+                                <strong>Edges:</strong> {{ dag_data.stats.edge_count }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">DAG Consensus Model</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            The DAG (Directed Acyclic Graph) consensus model is an alternative to traditional blockchain
+                            architectures that offers higher scalability. Instead of grouping transactions into blocks,
+                            each transaction can reference multiple previous transactions directly.
+                        </p>
+                        <p>
+                            This implementation is inspired by the IOTA Tangle, where:
+                        </p>
+                        <ul>
+                            <li>New transactions must approve 2+ existing transactions (tips)</li>
+                            <li>Transactions accumulate weight as they're referenced by newer transactions</li>
+                            <li>Tips are unconfirmed transactions waiting for approval</li>
+                            <li>The system uses a randomized tip selection algorithm</li>
+                        </ul>
+                        <p>
+                            <strong>Orange nodes</strong> in the visualization represent tips, while <strong>blue nodes</strong> 
+                            represent confirmed transactions. Node size corresponds to cumulative weight.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">DAG Transactions</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5>Current Tips</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Hash (first 10 chars)</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Amount</th>
+                                        <th>Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tip in dag_data.tips %}
+                                    <tr>
+                                        <td><code>{{ tip.hash[:10] }}...</code></td>
+                                        <td>{{ tip.transaction.sender }}</td>
+                                        <td>{{ tip.transaction.recipient }}</td>
+                                        <td>{{ tip.transaction.amount }}</td>
+                                        <td>{{ tip.weight }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No tips available</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">All Transactions</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Hash (first 10 chars)</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Amount</th>
+                                        <th>Weight</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tx in dag_data.transactions %}
+                                    <tr>
+                                        <td><code>{{ tx.hash[:10] }}...</code></td>
+                                        <td>{{ tx.transaction.sender }}</td>
+                                        <td>{{ tx.transaction.recipient }}</td>
+                                        <td>{{ tx.transaction.amount }}</td>
+                                        <td>{{ tx.weight }}</td>
+                                        <td>
+                                            {% if tx.is_tip %}
+                                            <span class="badge bg-warning text-dark">Tip</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Confirmed</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">No transactions available</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 mb-5">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Create New Transaction</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/create_transaction" method="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="sender" class="form-label">Sender</label>
+                                        <select class="form-select" id="sender" name="sender" required>
+                                            {% for name in ['Alice', 'Bob', 'Charlie'] %}
+                                            <option value="{{ name }}">{{ name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="recipient" class="form-label">Recipient</label>
+                                        <select class="form-select" id="recipient" name="recipient" required>
+                                            {% for name in ['Alice', 'Bob', 'Charlie'] %}
+                                            <option value="{{ name }}">{{ name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="amount" class="form-label">Amount</label>
+                                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0.01" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">Create Transaction</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>Blockchain Simulation: Merkle Trees & DAG Consensus</p>
+                    <p class="text-muted">A Python-based educational simulation</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

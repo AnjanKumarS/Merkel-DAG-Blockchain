@@ -1,0 +1,163 @@
+/* Custom styles to extend Bootstrap */
+
+/* Body adjustments */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Footer styling */
+.footer {
+    margin-top: auto;
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Code blocks */
+code {
+    font-family: 'Roboto Mono', monospace;
+    word-break: break-word;
+}
+
+/* Table adjustments */
+.table {
+    margin-bottom: 0;
+}
+
+/* Accordion customization */
+.accordion-button:not(.collapsed) {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+}
+
+/* Blockchain and DAG visuals */
+.blockchain-visual, .dag-visual {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+/* Custom badges */
+.badge-block {
+    background-color: var(--bs-primary);
+}
+
+.badge-pending {
+    background-color: var(--bs-warning);
+    color: var(--bs-dark);
+}
+
+.badge-confirmed {
+    background-color: var(--bs-success);
+}
+
+/* Transaction status colors */
+.tx-pending {
+    color: var(--bs-warning);
+}
+
+.tx-confirmed {
+    color: var(--bs-success);
+}
+
+/* Wallet card highlight */
+.wallet-card {
+    transition: transform 0.2s;
+}
+
+.wallet-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Balance display */
+.balance-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--bs-primary);
+    text-align: center;
+    margin: 1rem 0;
+}
+
+/* Address display */
+.address-display {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Visualization container */
+.visualization-container {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+/* Mining animation */
+@keyframes mining {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.mining-animation {
+    display: inline-block;
+    animation: mining 2s linear infinite;
+}
+
+/* Custom block styles for visualization */
+.block-node {
+    fill: var(--bs-primary);
+    stroke: var(--bs-dark);
+    stroke-width: 2px;
+}
+
+.block-link {
+    stroke: var(--bs-gray);
+    stroke-width: 2px;
+}
+
+/* Fix for code wrapping in tables */
+.table td code {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Make long addresses and hashes scrollable in tables */
+.table td.hash-cell {
+    max-width: 150px;
+    overflow-x: auto;
+}
+
+/* Style for text highlighting */
+.highlight {
+    background-color: rgba(var(--bs-warning-rgb), 0.2);
+    padding: 0.1em 0.3em;
+    border-radius: 0.2em;
+}
+
+/* Large code blocks */
+pre {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+/* Tooltip enhancements */
+.tooltip-inner {
+    max-width: 300px;
+}
