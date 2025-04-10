@@ -1,5 +1,11 @@
 /* Custom styles to extend Bootstrap */
 
+/* Global settings */
+* {
+    background-color: #ffffff !important; /* Force white background */
+    color: #000000 !important; /* Force black text */
+}
+
 /* Body adjustments */
 body {
     min-height: 100vh;
@@ -14,7 +20,7 @@ body {
 
 /* Card enhancements */
 .card {
-    border: none;
+    border: 1px solid #ccc;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -27,50 +33,48 @@ body {
 code {
     font-family: 'Roboto Mono', monospace;
     word-break: break-word;
+    background-color: #f8f9fa !important;
 }
 
 /* Table adjustments */
 .table {
-    margin-bottom: 0;
+    border: 1px solid #ddd;
 }
 
 /* Accordion customization */
 .accordion-button:not(.collapsed) {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
-    color: var(--bs-primary);
+    background-color: #f8f9fa !important;
 }
 
 /* Blockchain and DAG visuals */
 .blockchain-visual, .dag-visual {
-    max-width: 100%;
-    height: auto;
-    margin: 1rem 0;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 0.5rem;
-    padding: 1rem;
+    background-color: #ffffff !important;
+    border: 1px solid #ddd;
 }
 
 /* Custom badges */
 .badge-block {
-    background-color: var(--bs-primary);
+    background-color: #ffffff !important;
+    color: #000000 !important;
 }
 
 .badge-pending {
-    background-color: var(--bs-warning);
-    color: var(--bs-dark);
+    background-color: #ffc107 !important;
+    color: #000000 !important;
 }
 
 .badge-confirmed {
-    background-color: var(--bs-success);
+    background-color: #28a745 !important;
+    color: #000000 !important;
 }
 
 /* Transaction status colors */
 .tx-pending {
-    color: var(--bs-warning);
+    color: #ffc107 !important;
 }
 
 .tx-confirmed {
-    color: var(--bs-success);
+    color: #28a745 !important;
 }
 
 /* Wallet card highlight */
@@ -86,14 +90,13 @@ code {
 .balance-display {
     font-size: 2rem;
     font-weight: bold;
-    color: var(--bs-primary);
     text-align: center;
     margin: 1rem 0;
 }
 
 /* Address display */
 .address-display {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa !important;
     padding: 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.8rem;
@@ -120,13 +123,13 @@ code {
 
 /* Custom block styles for visualization */
 .block-node {
-    fill: var(--bs-primary);
-    stroke: var(--bs-dark);
+    fill: #000000 !important;
+    stroke: #000000 !important;
     stroke-width: 2px;
 }
 
 .block-link {
-    stroke: var(--bs-gray);
+    stroke: #000000 !important;
     stroke-width: 2px;
 }
 
@@ -144,14 +147,14 @@ code {
 
 /* Style for text highlighting */
 .highlight {
-    background-color: rgba(var(--bs-warning-rgb), 0.2);
+    background-color: #ffecb3 !important;
     padding: 0.1em 0.3em;
     border-radius: 0.2em;
 }
 
 /* Large code blocks */
 pre {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: #f8f9fa !important;
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -160,4 +163,24 @@ pre {
 /* Tooltip enhancements */
 .tooltip-inner {
     max-width: 300px;
+}
+
+/* Navbar adjustments */
+.navbar {
+    border-bottom: 1px solid #ccc;
+}
+
+/* Form inputs */
+input, textarea, select {
+    border: 1px solid #ccc !important;
+}
+
+/* Button styling */
+.btn {
+    border: 1px solid #000000 !important;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    background-color: #f8f9fa !important;
 }
