@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
+name = "blockchain-ledger"
 version = "0.1.0"
-description = "Add your description here"
+description = "DAG-based Merkle Tree Transaction System"
 requires-python = ">=3.11"
 dependencies = [
     "ecdsa>=0.19.1",

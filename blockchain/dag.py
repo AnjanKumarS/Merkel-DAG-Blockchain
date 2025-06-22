@@ -110,7 +110,8 @@ class DAG:
         # Add to graph
         self.graph.add_node(dag_tx.hash, **dag_tx.to_dict())
         for ref in references:
-            self.graph.add_edge(dag_tx.hash, ref)
+            # Edge should point from new transaction to referenced transaction (approval relationship)
+            self.graph.add_edge(dag_tx.hash, ref, amount=transaction.amount)
         
         # Update cumulative weights
         self.update_weights(dag_tx.hash)

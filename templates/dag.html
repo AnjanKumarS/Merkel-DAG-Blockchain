@@ -1,12 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DAG Visualization | Blockchain Simulation</title>
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .graph-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .graph-image {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .graph-image:hover {
+            transform: scale(1.02);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .tip-node {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .confirmed-node {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        .dag-container {
+            width: 100%;
+            height: 600px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .node {
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+
+        .node-label {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+        }
+
+        .link-label {
+            font-family: monospace;
+            font-size: 10px;
+            fill: #666;
+        }
+    </style>
 </head>
+
 <body data-bs-theme="dark">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
@@ -38,67 +116,105 @@
 
     <div class="container mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
-        <h1 class="mb-4">DAG Visualization</h1>
-        
+        <h1 class="mb-4 text-center">DAG Visualization - Interactive Graph Structure</h1>
+
+        <!-- Graph Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <h4>{{ dag_data.stats.transaction_count }}</h4>
+                    <p class="mb-0">Total Transactions</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <h4>{{ dag_data.stats.tip_count }}</h4>
+                    <p class="mb-0">Active Tips</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <h4>{{ dag_data.stats.edge_count }}</h4>
+                    <p class="mb-0">Graph Edges</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive DAG Graph Visualization -->
         <div class="row">
             <div class="col-md-12">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h4 class="mb-0">DAG Structure (Directed Acyclic Graph)</h4>
+                <div class="graph-container">
+                    <h3 class="text-center text-white mb-4">Interactive DAG Graph Structure</h3>
+                    <div class="dag-container">
+                        <svg width="100%" height="100%" id="dag"></svg>
                     </div>
-                    <div class="card-body text-center">
-                        <img src="data:image/png;base64,{{ dag_data.dag_image }}" 
-                             alt="DAG Visualization" 
-                             class="img-fluid rounded">
-                        <div class="mt-3">
-                            <p>
-                                <strong>Total Transactions:</strong> {{ dag_data.stats.transaction_count }} &nbsp;|&nbsp;
-                                <strong>Tips:</strong> {{ dag_data.stats.tip_count }} &nbsp;|&nbsp;
-                                <strong>Edges:</strong> {{ dag_data.stats.edge_count }}
-                            </p>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="tip-node">
+                                <h6><i class="fas fa-exclamation-triangle"></i> Tips (Unconfirmed)</h6>
+                                <p class="mb-0">Orange nodes represent unconfirmed transactions waiting for approval</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="confirmed-node">
+                                <h6><i class="fas fa-check-circle"></i> Confirmed</h6>
+                                <p class="mb-0">Teal nodes represent confirmed transactions in the DAG</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- <div class="row">
+
+        <!-- DAG Explanation -->
+        <div class="row mb-4">
             <div class="col-md-12">
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm">
                     <div class="card-header bg-info text-white">
-                        <h4 class="mb-0">DAG Consensus Model</h4>
+                        <h4 class="mb-0">Interactive DAG Graph Structure</h4>
                     </div>
                     <div class="card-body">
                         <p>
-                            The DAG (Directed Acyclic Graph) consensus model is an alternative to traditional blockchain
-                            architectures that offers higher scalability. Instead of grouping transactions into blocks,
-                            each transaction can reference multiple previous transactions directly.
+                            This <strong>interactive DAG visualization</strong> shows the actual connections between
+                            transactions
+                            in the Directed Acyclic Graph. You can drag nodes to explore the structure and see how
+                            transactions
+                            reference each other.
                         </p>
-                        <p>
-                            This implementation is inspired by the IOTA Tangle, where:
-                        </p>
-                        <ul>
-                            <li>New transactions must approve 2+ existing transactions (tips)</li>
-                            <li>Transactions accumulate weight as they're referenced by newer transactions</li>
-                            <li>Tips are unconfirmed transactions waiting for approval</li>
-                            <li>The system uses a randomized tip selection algorithm</li>
-                        </ul>
-                        <p>
-                            <strong>Orange nodes</strong> in the visualization represent tips, while <strong>blue nodes</strong> 
-                            represent confirmed transactions. Node size corresponds to cumulative weight.
-                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Interactive Features:</h5>
+                                <ul>
+                                    <li><strong>Drag Nodes:</strong> Click and drag nodes to reposition them</li>
+                                    <li><strong>Force Layout:</strong> Nodes automatically arrange based on connections
+                                    </li>
+                                    <li><strong>Real Connections:</strong> Lines show actual transaction references</li>
+                                    <li><strong>Dynamic:</strong> Graph updates as new transactions are added</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Graph Elements:</h5>
+                                <ul>
+                                    <li><strong>Nodes:</strong> Individual transactions with unique hashes</li>
+                                    <li><strong>Edges:</strong> Direct references between transactions</li>
+                                    <li><strong>Colors:</strong> Orange for tips, Teal for confirmed</li>
+                                    <li><strong>Labels:</strong> Show transaction hash prefixes</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div> -->
-        
+        </div>
+
+        <!-- Transaction Tables -->
         <div class="row">
             <div class="col-md-12">
                 <div class="card shadow-sm">
@@ -106,7 +222,7 @@
                         <h4 class="mb-0">DAG Transactions</h4>
                     </div>
                     <div class="card-body">
-                        <h5>Current Tips</h5>
+                        <h5>Current Tips (Unconfirmed Transactions)</h5>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -135,8 +251,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <h5 class="mt-4">All Transactions</h5>
+
+                        <h5 class="mt-4">All Transactions in DAG</h5>
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -177,58 +293,13 @@
                 </div>
             </div>
         </div>
-        
-        <!-- <div class="row mt-4 mb-5">
-            <div class="col-md-12">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Create New Transaction</h4>
-                    </div>
-                    <div class="card-body">
-                        <form action="/create_transaction" method="post">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="sender" class="form-label">Sender</label>
-                                        <select class="form-select" id="sender" name="sender" required>
-                                            {% for name in ['Alice', 'Bob', 'Charlie'] %}
-                                            <option value="{{ name }}">{{ name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="recipient" class="form-label">Recipient</label>
-                                        <select class="form-select" id="recipient" name="recipient" required>
-                                            {% for name in ['Alice', 'Bob', 'Charlie'] %}
-                                            <option value="{{ name }}">{{ name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="amount" class="form-label">Amount</label>
-                                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0.01" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-primary">Create Transaction</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
+    </div>
 
     <footer class="footer bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-12 text-center">
-                    <p>Merkle-DAG Blockchain for Secure Transations</p>
+                    <p>DAG-based Merkle Tree Transaction System</p>
                     <p class="text-muted">A Python-based Blockchain Simulation</p>
                 </div>
             </div>
@@ -236,6 +307,159 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+        async function fetchDAGData() {
+            try {
+                const response = await fetch('/api/dag_graph');
+                const dagData = await response.json();
+
+                if (response.ok) {
+                    renderDAG(dagData);
+                } else {
+                    console.error('Failed to load DAG data:', dagData.error);
+                }
+            } catch (error) {
+                console.error('Error fetching DAG data:', error);
+            }
+        }
+
+        function renderDAG(data) {
+            const container = document.querySelector('.dag-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            const svg = d3.select("#dag")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Clear previous DAG
+            svg.selectAll("*").remove();
+
+            // Create nodes from transactions
+            const nodes = data.nodes.map(node => ({
+                id: node.id,
+                hash: node.hash,
+                is_tip: node.is_tip,
+                weight: node.weight,
+                sender: node.sender,
+                recipient: node.recipient,
+                amount: node.amount
+            }));
+
+            // Create links from edges
+            const links = data.edges.map(edge => ({
+                source: edge.source,
+                target: edge.target,
+                amount: edge.amount
+            }));
+
+            // Setup force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+                .force("charge", d3.forceManyBody().strength(-800))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(30))
+                .alphaDecay(0.05);
+
+            // Create arrow marker
+            svg.append("defs").append("marker")
+                .attr("id", "arrowhead")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 20)
+                .attr("refY", 0)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "#999");
+
+            // Draw links
+            const link = svg.selectAll(".link")
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("marker-end", "url(#arrowhead)")
+                .attr("stroke-width", d => Math.max(1, Math.sqrt(d.amount || 1)));
+
+            // Draw nodes
+            const node = svg.selectAll(".node")
+                .data(nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", d => Math.max(15, Math.sqrt(d.weight || 1) * 3))
+                .attr("fill", d => d.is_tip ? "#FF6B35" : "#4ECDC4")
+                .call(drag(simulation));
+
+            // Draw node labels
+            const label = svg.selectAll(".node-label")
+                .data(nodes)
+                .enter().append("text")
+                .attr("class", "node-label")
+                .attr("dy", -25)
+                .attr("text-anchor", "middle")
+                .text(d => d.hash.substring(0, 8) + "...")
+                .attr("font-size", "10px");
+
+            // Draw link labels (amounts)
+            const linkLabel = svg.selectAll(".link-label")
+                .data(links)
+                .enter().append("text")
+                .attr("class", "link-label")
+                .attr("text-anchor", "middle")
+                .text(d => d.amount ? d.amount.toFixed(2) : "")
+                .attr("font-size", "8px");
+
+            // Update simulation positions
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                label
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+
+                linkLabel
+                    .attr("x", d => (d.source.x + d.target.x) / 2)
+                    .attr("y", d => (d.source.y + d.target.y) / 2);
+            });
+
+            // Drag function
+            function drag(simulation) {
+                return d3.drag()
+                    .on("start", (event, d) => {
+                        if (!event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    })
+                    .on("drag", (event, d) => {
+                        d.fx = event.x;
+                        d.fy = event.y;
+                    })
+                    .on("end", (event, d) => {
+                        if (!event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    });
+            }
+        }
+
+        // Load DAG data on page load
+        fetchDAGData();
+
+        // Refresh DAG data every 5 seconds
+        setInterval(fetchDAGData, 5000);
+    </script>
 </body>
+
 </html>

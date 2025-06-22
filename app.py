@@ -155,5 +155,57 @@ def api_validate_chain():
         "message": "Blockchain is valid" if is_valid else "Blockchain is invalid"
     })
 
+@app.route('/api/dag_graph')
+def api_dag_graph():
+    """
+    API endpoint to get DAG data for D3.js visualization.
+    Returns nodes and edges in the format expected by D3.js.
+    """
+    try:
+        # Get all transactions from DAG
+        nodes = []
+        edges = []
+        
+        # Create nodes from transactions
+        for tx_hash, dag_tx in dag.transactions.items():
+            node = {
+                "id": tx_hash,
+                "hash": tx_hash,
+                "is_tip": tx_hash in dag.tips,
+                "weight": dag_tx.weight,
+                "sender": dag_tx.transaction.sender,
+                "recipient": dag_tx.transaction.recipient,
+                "amount": dag_tx.transaction.amount
+            }
+            nodes.append(node)
+        
+        # Create edges from graph
+        for edge in dag.graph.edges():
+            source_hash, target_hash = edge
+            # Get transaction amount for the edge
+            edge_data = dag.graph.get_edge_data(source_hash, target_hash)
+            amount = edge_data.get('amount', 0) if edge_data else 0
+            
+            edge_info = {
+                "source": source_hash,
+                "target": target_hash,
+                "amount": amount
+            }
+            edges.append(edge_info)
+        
+        return jsonify({
+            "nodes": nodes,
+            "edges": edges,
+            "stats": {
+                "transaction_count": len(nodes),
+                "tip_count": len(dag.tips),
+                "edge_count": len(edges)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating DAG graph data: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
